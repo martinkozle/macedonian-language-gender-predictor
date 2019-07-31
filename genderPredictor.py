@@ -15,16 +15,16 @@ class Model:
 		self.Y_test = np.array(Y_test)
 		# define the keras model
 		self.model = Sequential()
-		self.model.add(Dense(30, input_dim=20, activation='relu'))
+		self.model.add(Dense(30, input_dim=100, activation='relu'))
 		self.model.add(Dense(15, activation='relu'))
 		self.model.add(Dense(3, activation='sigmoid'))
 
-	def train(self):
+	def train(self, epochs):
 		print("Training.")
 		# compile the keras model
 		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 		# fit the keras model on the dataset
-		self.model.fit(self.X_train, self.Y_train, epochs=20, batch_size=10)
+		self.model.fit(self.X_train, self.Y_train, epochs=epochs, batch_size=10)
 		print("Training finished.")
 
 	def eval(self):
@@ -89,7 +89,8 @@ def main():
 	print("Scaled all the data.")
 	X_train, X_test, Y_train, Y_test = splitData(X_scale, Y)
 	model = Model(X_train, X_test, Y_train, Y_test)
-	model.train()
+	epochs = input("Enter number of epochs: ")
+	model.train(epochs)
 	model.eval()
 	while True:
 		model.predict(input("Test with manual input: "))
