@@ -71,7 +71,7 @@ def getAllWords(link):
 	for option in options:
 		# if it has a gender extension in the word, add it to the list
 		if any(rod in option.text for rod in (" м.", " ж.", " ср.")):
-			words.append(option.text.replace(" ср.", " c.").replace("  ", ",")[:-1])
+			words.append(option.text.replace(" ср.", " с.").replace("  ", ",")[:-1])
 	return words
 
 
