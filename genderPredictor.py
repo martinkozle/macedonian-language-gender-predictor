@@ -24,7 +24,7 @@ class Model:
 		# compile the keras model
 		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 		# fit the keras model on the dataset
-		self.model.fit(self.X_train, self.Y_train, epochs=150, batch_size=10)
+		self.model.fit(self.X_train, self.Y_train, epochs=20, batch_size=10)
 		print("Training finished.")
 
 	def eval(self):
@@ -34,7 +34,16 @@ class Model:
 		print('Accuracy: %.2f' % (accuracy * 100))
 
 	def predict(self, word):
-		print("Prediction: " + self.model.predict_classes(scaleData([word])[0]))
+		arr, _ = scaleData([word], [])
+		arr = np.array(arr)
+		print("Prediction: ", end='')
+		prediction = self.model.predict(arr)[0]
+		if max(prediction) == prediction[0]:
+			print("м")
+		elif max(prediction) == prediction[1]:
+			print("ж")
+		else:
+			print("с")
 
 
 def getData(fileName):
@@ -46,12 +55,12 @@ def getData(fileName):
 		temp = i.split(',')
 		words.append(temp[0])
 		labels.append(temp[1])
-	for i in range(len(words)):
-		words[i] = " " * (20 - len(words[i])) + words[i]
 	return words, labels
 
 
 def scaleData(X, Y):
+	for i in range(len(X)):
+		X[i] = " " * (20 - len(X[i])) + X[i]
 	labelMap = {'м': (1, 0, 0), 'ж': (0, 1, 0), 'с': (0, 0, 1)}
 	macedonianCharacters = " -’абвгдѓежзѕијклљмнњопрстќуфхцчџшѝѐ"
 	dataMap = dict(zip(list(macedonianCharacters), range(0, 36)[::-1]))
