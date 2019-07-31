@@ -13,7 +13,8 @@ headers = {
 	'Accept_Encoding': 'gzip, deflate, br',
 	'Accept_Language': 'en-US,en;q=0.9,mk;q=0.8',
 }
-order = 0   # used to keep order for writing to words in the same order as the website
+order = 0  # used to keep order for writing to words in the same order as the website
+
 
 # multithreading allows for multiple requests to be sent to the website at the same time
 class myThread(threading.Thread):
@@ -31,6 +32,7 @@ class myThread(threading.Thread):
 			pass
 		self.words += values
 		order += 1
+
 
 # returns a list of ranges, for example: [/letter/а/а/абонентски, /leter/а/абонира/авантурист, ...]
 def getAllRanges(link):
@@ -51,6 +53,7 @@ def getAllRanges(link):
 	for option in options:
 		ranges.append(option.get("value"))
 	return ranges
+
 
 # returns all words in a given range (chrome shows <option> tags, requests shows <a> tags)
 def getAllWords(link):
@@ -76,8 +79,13 @@ def getAllWords(link):
 
 
 def main():
-	file = io.open("data.txt", mode="a", encoding="utf-8")
-	global order
+	global order, macedonianCharacters
+	append = input("Do you want to continue appending to a failed crawl? ").lower() in ("y", "yes", "yea", "da")
+	startingLetter = 'а'
+	if append:
+		startingLetter = input("What character do you want to start from? ")
+	macedonianCharacters = macedonianCharacters[macedonianCharacters.find(startingLetter):]
+	file = io.open("data.txt", mode=("a" if append else "w"), encoding="utf-8")
 	for letter in macedonianCharacters:
 		print("Collecting " + letter)
 		ranges = getAllRanges(baseLink + "/letter/" + letter)

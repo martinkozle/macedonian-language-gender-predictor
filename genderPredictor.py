@@ -1,6 +1,4 @@
-import tensorflow as tf
 from sklearn.model_selection import train_test_split
-from numpy import loadtxt
 from keras.models import Sequential
 from keras.layers import Dense
 import numpy as np
@@ -15,8 +13,10 @@ class Model:
 		self.Y_test = np.array(Y_test)
 		# define the keras model
 		self.model = Sequential()
-		self.model.add(Dense(30, input_dim=100, activation='relu'))
-		self.model.add(Dense(15, activation='relu'))
+		self.model.add(Dense(90, input_dim=25, activation='relu'))
+		self.model.add(Dense(60, activation='relu'))
+		self.model.add(Dense(30, activation='relu'))
+		self.model.add(Dense(10, activation='relu'))
 		self.model.add(Dense(3, activation='sigmoid'))
 
 	def train(self, epochs):
@@ -60,7 +60,7 @@ def getData(fileName):
 
 def scaleData(X, Y):
 	for i in range(len(X)):
-		X[i] = " " * (20 - len(X[i])) + X[i]
+		X[i] = " " * (25 - len(X[i])) + X[i]
 	labelMap = {'м': (1, 0, 0), 'ж': (0, 1, 0), 'с': (0, 0, 1)}
 	macedonianCharacters = " -’абвгдѓежзѕијклљмнњопрстќуфхцчџшѝѐ"
 	dataMap = dict(zip(list(macedonianCharacters), range(0, 36)[::-1]))
@@ -89,7 +89,7 @@ def main():
 	print("Scaled all the data.")
 	X_train, X_test, Y_train, Y_test = splitData(X_scale, Y)
 	model = Model(X_train, X_test, Y_train, Y_test)
-	epochs = input("Enter number of epochs: ")
+	epochs = int(input("Enter number of epochs: "))
 	model.train(epochs)
 	model.eval()
 	while True:
