@@ -1,57 +1,91 @@
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from numpy import loadtxt
+from keras.models import Sequential
+from keras.layers import Dense
+import io
+
+
+class Model:
+	def __init__(self, X_train, X_test, Y_train, Y_test):
+		self.X_train = X_train
+		self.X_test = X_test
+		self.Y_train = Y_train
+		self.Y_test = Y_test
+		# define the keras model
+		self.model = Sequential()
+		self.model.add(Dense(30, input_dim=20, activation='relu'))
+		self.model.add(Dense(15, activation='relu'))
+		self.model.add(Dense(3, activation='sigmoid'))
+
+	def train(self):
+		print("Training.")
+		# compile the keras model
+		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+		# fit the keras model on the dataset
+		self.model.fit(self.X_train, self.Y_train, epochs=150, batch_size=10)
+		print("Training finished.")
+
+	def eval(self):
+		print("Evaluating.")
+		# evaluate the keras model
+		_, accuracy = self.model.evaluate(self.X_test, self.Y_test)
+		print('Accuracy: %.2f' % (accuracy * 100))
+
+	def predict(self, word):
+		print("Prediction: " + self.model.predict_classes(scaleData([word])[0]))
+
+
+def getData(fileName):
+	words = []
+	labels = []
+	file = io.open(fileName, mode="r", encoding="utf-8")
+	data = file.read().split('\n')
+	for i in data:
+		temp = i.split(',')
+		words.append(temp[0])
+		labels.append(temp[1])
+	for i in range(len(words)):
+		words[i] = " " * (20 - len(words[i])) + words[i]
+	return words, labels
+
+
+def scaleData(X, Y):
+	labelMap = {'м': (1, 0, 0), 'ж': (0, 1, 0), 'с': (0, 0, 1)}
+	macedonianCharacters = " -’абвгдѓежзѕијклљмнњопрстќуфхцчџшѝѐ"
+	dataMap = dict(zip(list(macedonianCharacters), range(0, 36)[::-1]))
+	# print(value)
+	scaledData = []
+	tupleLabels = []
+	for word in X:
+		temp = []
+		for char in word:
+			temp.append((dataMap[char.lower()] - 36) / (-36))
+		scaledData.append(temp)
+	for gender in Y:
+		tupleLabels.append(labelMap[gender])
+	return scaledData, tupleLabels
+
+
+def splitData(X, Y):
+	return train_test_split(X, Y, test_size=0.3)
+
 
 def main():
-	# Python optimisation variables
-	learning_rate = 0.5
-	epochs = 10
-	batch_size = 100
-
-	# declare the training data placeholders
-	# input x - for up to 30 characters
-	x = tf.placeholder(tf.float32, [None, 30])
-	# output y - for 'maski', 'zenski', 'sreden' rod
-	y = tf.placeholder(tf.string, [None, 3])
-	# now declare the weights connecting the input to the hidden layer
-	W1 = tf.Variable(tf.random_normal([30, 300], stddev=0.03), name='W1')
-	b1 = tf.Variable(tf.random_normal([300]), name='b1')
-	# and the weights connecting the hidden layer to the output layer
-	W2 = tf.Variable(tf.random_normal([300, 3], stddev=0.03), name='W2')
-	b2 = tf.Variable(tf.random_normal([3]), name='b2')
-	# calculate the output of the hidden layer
-	hidden_out = tf.add(tf.matmul(x, W1), b1)
-	hidden_out = tf.nn.relu(hidden_out)
-	# now calculate the hidden layer output - in this case, let's use a softmax activated
-	# output layer
-	y_ = tf.nn.softmax(tf.add(tf.matmul(hidden_out, W2), b2))
-	y_clipped = tf.clip_by_value(y_, 1e-10, 0.9999999)
-	cross_entropy = -tf.reduce_mean(tf.reduce_sum(y * tf.log(y_clipped)
-												  + (1 - y) * tf.log(1 - y_clipped), axis=1))
-	# add an optimiser
-	optimiser = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(cross_entropy)
-
-	# finally setup the initialisation operator
-	init_op = tf.global_variables_initializer()
-
-	# define an accuracy assessment operation
-	correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-	# start the session
-	with tf.Session() as sess:
-		# initialise the variables
-		sess.run(init_op)
-		total_batch = int(len(mnist.train.labels) / batch_size)
-		for epoch in range(epochs):
-			avg_cost = 0
-			for i in range(total_batch):
-				batch_x, batch_y = mnist.train.next_batch(batch_size=batch_size)
-				_, c = sess.run([optimiser, cross_entropy],
-								feed_dict={x: batch_x, y: batch_y})
-				avg_cost += c / total_batch
-			print("Epoch:", (epoch + 1), "cost =", "{:.3f}".format(avg_cost))
-		print(sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels}))
+	words, labels = getData("data.txt")
+	print("Gathered data.")
+	X, Y = words, labels
+	X_scale, Y = scaleData(X, Y)
+	print("Scaled all the data.")
+	X_train, X_test, Y_train, Y_test = splitData(X_scale, Y)
+	model = Model(X_train, X_test, Y_train, Y_test)
+	model.train()
+	model.eval()
+	while True:
+		model.predict(input("Test with manual input: "))
 
 
+# learn(words, labels)
 
 
 if __name__ == "__main__":
