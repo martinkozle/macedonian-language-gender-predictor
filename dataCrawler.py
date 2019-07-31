@@ -36,7 +36,7 @@ class myThread(threading.Thread):
 def getAllRanges(link):
 	global headers
 	try:
-		html = re.get(link, headers=headers, timeout=20)
+		html = re.get(link, headers=headers, timeout=100)
 	except:
 		print("Connection error for " + link + " skipping!")
 		return []
@@ -56,7 +56,7 @@ def getAllRanges(link):
 def getAllWords(link):
 	global headers
 	try:
-		html = re.get(link, headers=headers, timeout=20)
+		html = re.get(link, headers=headers, timeout=100)
 	except:
 		print("Connection error for " + link + " skipping!")
 		return []
@@ -70,13 +70,13 @@ def getAllWords(link):
 	words = []
 	for option in options:
 		# if it has a gender extension in the word, add it to the list
-		if any(rod in option.text for rod in (" м.", " ж.", " с.")):
-			words.append(option.text.replace("  ", ",")[:-1])
+		if any(rod in option.text for rod in (" м.", " ж.", " ср.")):
+			words.append(option.text.replace(" ср.", " c.").replace("  ", ",")[:-1])
 	return words
 
 
 def main():
-	file = io.open("data.txt", mode="w", encoding="utf-8")
+	file = io.open("data.txt", mode="a", encoding="utf-8")
 	global order
 	for letter in macedonianCharacters:
 		print("Collecting " + letter)
