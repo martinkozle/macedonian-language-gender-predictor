@@ -3,15 +3,16 @@ from sklearn.model_selection import train_test_split
 from numpy import loadtxt
 from keras.models import Sequential
 from keras.layers import Dense
+import numpy as np
 import io
 
 
 class Model:
 	def __init__(self, X_train, X_test, Y_train, Y_test):
-		self.X_train = X_train
-		self.X_test = X_test
-		self.Y_train = Y_train
-		self.Y_test = Y_test
+		self.X_train = np.array(X_train)
+		self.X_test = np.array(X_test)
+		self.Y_train = np.array(Y_train)
+		self.Y_test = np.array(Y_test)
 		# define the keras model
 		self.model = Sequential()
 		self.model.add(Dense(30, input_dim=20, activation='relu'))
