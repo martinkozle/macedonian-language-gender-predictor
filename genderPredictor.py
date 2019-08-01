@@ -1,6 +1,7 @@
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense
+from keras.models import model_from_json
 import numpy as np
 import io
 
@@ -13,16 +14,15 @@ class Model:
 		self.Y_test = np.array(Y_test)
 		# define the keras model
 		self.model = Sequential()
-		self.model.add(Dense(90, input_dim=25, activation='relu'))
-		self.model.add(Dense(60, activation='relu'))
-		self.model.add(Dense(30, activation='relu'))
-		self.model.add(Dense(10, activation='relu'))
+		self.model.add(Dense(50, input_dim=25, activation='relu'))
+		self.model.add(Dense(150, activation='relu'))
+		self.model.add(Dense(50, activation='relu'))
 		self.model.add(Dense(3, activation='sigmoid'))
+		# compile the keras model
+		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 	def train(self, epochs):
 		print("Training.")
-		# compile the keras model
-		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 		# fit the keras model on the dataset
 		self.model.fit(self.X_train, self.Y_train, epochs=epochs, batch_size=10)
 		print("Training finished.")
@@ -32,6 +32,26 @@ class Model:
 		# evaluate the keras model
 		_, accuracy = self.model.evaluate(self.X_test, self.Y_test)
 		print('Accuracy: %.2f' % (accuracy * 100))
+
+	def load(self, name):
+		# load json and create model
+		json_file = open("models/" + name + ".json", 'r')
+		loaded_model_json = json_file.read()
+		json_file.close()
+		self.model = model_from_json(loaded_model_json)
+		# load weights into new model
+		self.model.load_weights("models/" + name + ".h5")
+		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+		print("Loaded model from disk")
+
+	def save(self, name):
+		# serialize model to JSON
+		model_json = self.model.to_json()
+		with open("models/" + name + ".json", "w") as json_file:
+			json_file.write(model_json)
+		# serialize weights to HDF5
+		self.model.save_weights("models/" + name + ".h5")
+		print("Saved model to disk")
 
 	def predict(self, word):
 		arr, _ = scaleData([word], [])
@@ -89,9 +109,15 @@ def main():
 	print("Scaled all the data.")
 	X_train, X_test, Y_train, Y_test = splitData(X_scale, Y)
 	model = Model(X_train, X_test, Y_train, Y_test)
-	epochs = int(input("Enter number of epochs: "))
-	model.train(epochs)
-	model.eval()
+	if input("Do you want to load a model file? ") in ("y", "yes", "yea", "da"):
+		model.load(input("Input file name (without extenstion): "))
+		model.eval()
+	else:
+		epochs = int(input("Enter number of epochs: "))
+		model.train(epochs)
+		model.eval()
+		if input("Do you want to save this model? ") in ("y", "yes", "yea", "da"):
+			model.save(input("Input file name (without extenstion): "))
 	while True:
 		model.predict(input("Test with manual input: "))
 
