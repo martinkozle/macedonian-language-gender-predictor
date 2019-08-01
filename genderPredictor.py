@@ -1,9 +1,12 @@
 from sklearn.model_selection import train_test_split
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.models import model_from_json
+from tensorflow.keras import backend as k
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import load_model
 import numpy as np
 import io
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"]="2"
 
 
 class Model:
@@ -21,10 +24,10 @@ class Model:
 		# compile the keras model
 		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-	def train(self, epochs):
+	def train(self, epochs, batch_size):
 		print("Training.")
 		# fit the keras model on the dataset
-		self.model.fit(self.X_train, self.Y_train, epochs=epochs, batch_size=10)
+		self.model.fit(self.X_train, self.Y_train, epochs=epochs, batch_size=batch_size)
 		print("Training finished.")
 
 	def eval(self):
@@ -34,23 +37,13 @@ class Model:
 		print('Accuracy: %.2f' % (accuracy * 100))
 
 	def load(self, name):
-		# load json and create model
-		json_file = open("models/" + name + ".json", 'r')
-		loaded_model_json = json_file.read()
-		json_file.close()
-		self.model = model_from_json(loaded_model_json)
-		# load weights into new model
-		self.model.load_weights("models/" + name + ".h5")
+		self.model = load_model("models/" + name + ".h5")
 		self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+		self.model.summary()
 		print("Loaded model from disk")
 
 	def save(self, name):
-		# serialize model to JSON
-		model_json = self.model.to_json()
-		with open("models/" + name + ".json", "w") as json_file:
-			json_file.write(model_json)
-		# serialize weights to HDF5
-		self.model.save_weights("models/" + name + ".h5")
+		self.model.save("models/" + name + ".h5")
 		print("Saved model to disk")
 
 	def predict(self, word):
@@ -90,7 +83,9 @@ def scaleData(X, Y):
 	for word in X:
 		temp = []
 		for char in word:
+			# scaled_value = (value - min) / (max - min)
 			temp.append((dataMap[char.lower()] - 36) / (-36))
+			# I messed up the formula ^ but it still works so mehh?
 		scaledData.append(temp)
 	for gender in Y:
 		tupleLabels.append(labelMap[gender])
@@ -114,7 +109,8 @@ def main():
 		model.eval()
 	else:
 		epochs = int(input("Enter number of epochs: "))
-		model.train(epochs)
+		batch_size = int(input("Enter batch size: "))
+		model.train(epochs, batch_size)
 		model.eval()
 		if input("Do you want to save this model? ") in ("y", "yes", "yea", "da"):
 			model.save(input("Input file name (without extenstion): "))
